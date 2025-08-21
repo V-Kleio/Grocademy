@@ -90,6 +90,10 @@ public class User {
 
     public Instant getUpdatedAt() { return updatedAt; }
 
+    public void subtractBalance(BigDecimal amount) {
+        this.balance = this.balance.subtract(amount);
+    }
+
     public static class Builder {
         private String firstName;
         private String lastName;
