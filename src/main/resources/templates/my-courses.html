@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+    <h1>My Courses</h1>
+
+    <form th:action="@{/my-courses}" method="get">
+        <input type="text" name="q" placeholder="Search for courses..." th:value="${query}">
+        <button type="submit">Search</button>
+    </form>
+
+    <div>
+        <div th:each="course : ${coursePage.content}">
+            <hr>
+            <h3 th:text="${course.title}">Course Title</h3>
+            <p>by <span th:text="${course.instructor}">Instructor</span></p>
+            <p>Price: <span th:text="${course.price}">$99.99</span></p>
+            <a th:href="@{/courses/{id}(id=${course.id})}">View Details</a>
+        </div>
+    </div>
+
+    <div th:if="${coursePage.totalPages > 1}">
+        <nav>
+            <ul>
+                <li th:classappend="${coursePage.first} ? 'disabled'">
+                    <a th:href="@{/courses(q=${query}, page=${coursePage.number - 1}, limit=${coursePage.size})}">Previous</a>
+                </li>
+                <li th:each="i : ${#numbers.sequence(0, coursePage.totalPages - 1)}">
+                    <a th:href="@{/courses(q=${query}, page=${i}, limit=${coursePage.size})}" th:text="${i + 1}">1</a>
+                </li>
+                <li th:classappend="${coursePage.last} ? 'disabled'">
+                    <a th:href="@{/courses(q=${query}, page=${coursePage.number + 1}, limit=${coursePage.size})}">Next</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</body>
+</html>

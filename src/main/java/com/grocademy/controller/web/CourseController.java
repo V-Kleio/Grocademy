@@ -77,4 +77,22 @@ public class CourseController {
 
         return "redirect:/courses/" + id;
     }
+
+    @GetMapping("/my-courses")
+    public String myCoursesPage(
+            Model model,
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "") String query,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int limit
+    ) {
+        User currentUser = userRepository.findByUsername(userDetails.getUsername())
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Pageable pageable = PageRequest.of(page, limit);
+        model.addAttribute("coursePage", courseService.findPurchasedCourses(currentUser.getId(), query, pageable));
+        model.addAttribute("query", query);
+
+        return "my-courses";
+    }
 }
