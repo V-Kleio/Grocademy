@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${course.title}">Course Title</title>
+</head>
+<body>
+    <a th:href="@{/courses}">&larr; Back to All Courses</a>
+    <hr>
+
+    <h1 th:text="${course.title}">Course Title</h1>
+    <p><em>by <span th:text="${course.instructor}">Instructor Name</span></em></p>
+
+    <img th:src="${course.thumbnailImageUrl}" alt="Course Thumbnail" width="300">
+
+    <h2>Description</h2>
+    <p th:text="${course.description}">Full course description goes here.</p>
+
+    <h2>Topics Covered</h2>
+    <ul>
+        <li th:each="topic : ${course.topics}" th:text="${topic}">A Topic</li>
+    </ul>
+
+    <h2>Price: <span th:text="${course.price}">$99.99</span></h2>
+
+    <div>
+        <div th:unless="${course.isPurchased}">
+            <form th:action="@{/courses/{id}/buy(id=${course.id})}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit">Buy Now</button>
+            </form>
+        </div>
+
+        <div th:if="${course.isPurchased}">
+            <a th:href="@{/courses/{id}/modules(id=${course.id})}">
+                <button>Go to Modules</button>
+            </a>
+        </div>
+
+        <div th:if="${course.isCompleted}" style="margin-top: 10px;">
+             <a th:href="@{/courses/{id}/certificate(id=${course.id})}">
+                <button>Download Certificate</button>
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>
