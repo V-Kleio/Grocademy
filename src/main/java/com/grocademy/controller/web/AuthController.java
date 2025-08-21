@@ -40,4 +40,9 @@ public class AuthController {
         }
         return "redirect:/login";
     }
+
+    @GetMapping("/login")
+    public String showLoginForm() {
+        return "login";
+    }
 }
