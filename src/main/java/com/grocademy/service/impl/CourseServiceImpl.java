@@ -3,14 +3,18 @@ package com.grocademy.service.impl;
 import com.grocademy.dto.CourseDetailedDto;
 import com.grocademy.dto.CourseDto;
 import com.grocademy.entity.Course;
+import com.grocademy.entity.PurchasedCourse;
+import com.grocademy.entity.User;
 import com.grocademy.repository.CourseRepository;
 import com.grocademy.repository.PurchasedCourseRepository;
+import com.grocademy.repository.UserRepository;
 import com.grocademy.service.CourseService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -21,11 +25,13 @@ public class CourseServiceImpl implements CourseService {
 
     private final CourseRepository courseRepository;
     private final PurchasedCourseRepository purchasedCourseRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    public CourseServiceImpl(CourseRepository courseRepository, PurchasedCourseRepository purchasedCourseRepository) {
+    public CourseServiceImpl(CourseRepository courseRepository, PurchasedCourseRepository purchasedCourseRepository, UserRepository userRepository) {
         this.courseRepository = courseRepository;
         this.purchasedCourseRepository = purchasedCourseRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -63,5 +69,29 @@ public class CourseServiceImpl implements CourseService {
             isPurchased,
             isCompleted
         );
+    }
+
+    @Override
+    @Transactional
+    public void buyCourse(Long courseId, Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new EntityNotFoundException("User not found, ID: " + userId));
+        Course course = courseRepository.findById(courseId)
+            .orElseThrow(() -> new EntityNotFoundException("Course not found, ID: " + courseId));
+
+        if (purchasedCourseRepository.findCourseIdsByUserId(userId).contains(courseId)) {
+            throw new IllegalStateException("Course already purchased by user.");
+        }
+
+        if (user.getBalance().compareTo(course.getPrice()) < 0) {
+            throw new IllegalStateException("Not enough money.");
+        }
+
+        user.subtractBalance(course.getPrice());
+        PurchasedCourse purchase = new PurchasedCourse.Builder()
+            .user(user)
+            .course(course)
+            .build();
+        purchasedCourseRepository.save(purchase);
     }
 }

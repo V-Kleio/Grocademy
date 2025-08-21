@@ -9,4 +9,5 @@ import com.grocademy.dto.CourseDto;
 public interface CourseService {
     Page<CourseDto> findAllCourses(String query, Pageable pageable, Long userId);
     CourseDetailedDto findCourseDetailsById(Long courseId, Long userId);
+    void buyCourse(Long courseId, Long userId);
 }
