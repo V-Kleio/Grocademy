@@ -1,5 +1,6 @@
 package com.grocademy.service.impl;
 
+import com.grocademy.dto.CourseDetailedDto;
 import com.grocademy.dto.CourseDto;
 import com.grocademy.entity.Course;
 import com.grocademy.repository.CourseRepository;
@@ -10,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import jakarta.persistence.EntityNotFoundException;
 
 import java.util.Set;
 
@@ -39,5 +42,26 @@ public class CourseServiceImpl implements CourseService {
             course.getThumbnailImageUrl(),
             purchasedCourseIds.contains(course.getId())
         ));
+    }
+
+    @Override
+    public CourseDetailedDto findCourseDetailsById(Long courseId, Long userId) {
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new EntityNotFoundException("Course not found, ID: " + courseId));
+
+        boolean isPurchased = purchasedCourseRepository.findCourseIdsByUserId(userId).contains(courseId);
+
+        boolean isCompleted = false;
+
+        return new CourseDetailedDto(
+            course.getId(),
+            course.getTitle(),
+            course.getDescription(),
+            course.getInstructor(),
+            course.getTopics(),
+            course.getPrice(),
+            course.getThumbnailImageUrl(),
+            isPurchased,
+            isCompleted
+        );
     }
 }
