@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
@@ -41,5 +42,18 @@ public class CourseController {
         model.addAttribute("query", query);
 
         return "browse-courses";
+    }
+
+    @GetMapping("/courses/{id}")
+    public String courseDetailPage(
+        @PathVariable Long id,
+        Model model,
+        @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        User currentUser = userRepository.findByUsername(userDetails.getUsername())
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+        model.addAttribute("course", courseService.findCourseDetailsById(id, currentUser.getId()));
+        return "course-detail";
     }
 }
