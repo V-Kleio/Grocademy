@@ -9,6 +9,15 @@
     <hr>
 
     <h1 th:text="${course.title}">Course Title</h1>
+
+    <div th:if="${success}" style="color: green; border: 1px solid green; padding: 10px; margin-bottom: 15px;">
+        <p th:text="${success}"></p>
+    </div>
+
+    <div th:if="${error}" style="color: red; border: 1px solid red; padding: 10px; margin-bottom: 15px;">
+        <p th:text="${error}"></p>
+    </div>
+
     <p><em>by <span th:text="${course.instructor}">Instructor Name</span></em></p>
 
     <img th:src="${course.thumbnailImageUrl}" alt="Course Thumbnail" width="300">
