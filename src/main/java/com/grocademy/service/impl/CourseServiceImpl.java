@@ -94,4 +94,18 @@ public class CourseServiceImpl implements CourseService {
             .build();
         purchasedCourseRepository.save(purchase);
     }
+
+    @Override
+    public Page<CourseDto> findPurchasedCourses(Long userId, String query, Pageable pageable) {
+        Page<Course> coursePage = courseRepository.findPurchasedCoursesByUserId(userId, query, pageable);
+
+        return coursePage.map(course -> new CourseDto(
+                course.getId(),
+                course.getTitle(),
+                course.getInstructor(),
+                course.getPrice(),
+                course.getThumbnailImageUrl(),
+                true
+        ));
+    }
 }

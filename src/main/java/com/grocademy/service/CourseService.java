@@ -10,4 +10,5 @@ public interface CourseService {
     Page<CourseDto> findAllCourses(String query, Pageable pageable, Long userId);
     CourseDetailedDto findCourseDetailsById(Long courseId, Long userId);
     void buyCourse(Long courseId, Long userId);
+    Page<CourseDto> findPurchasedCourses(Long userId, String query, Pageable pageable);
 }
