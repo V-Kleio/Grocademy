@@ -5,6 +5,8 @@ import java.time.Instant;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -37,11 +39,19 @@ public class User {
     @Column(precision=15, scale=0, nullable=false)
     private BigDecimal balance = BigDecimal.ZERO;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private Role role = Role.USER;
+
     @Column(name="created_at", nullable=false, updatable=false)
     private Instant createdAt;
 
     @Column(name="updated_at", nullable=false)
     private Instant updatedAt;
+
+    public enum Role {
+        USER, ADMIN
+    }
 
     protected User() {}
 
@@ -52,6 +62,7 @@ public class User {
         this.email = builder.email;
         this.passwordHash = builder.passwordHash;
         this.balance = BigDecimal.ZERO;
+        this.role = builder.role != null ? builder.role : Role.USER;
     }
 
     @PrePersist
@@ -90,8 +101,19 @@ public class User {
 
     public Instant getUpdatedAt() { return updatedAt; }
 
+    public Role getRole() { return role; }
+    public void setRole(Role role) { this.role = role; }
+
     public void subtractBalance(BigDecimal amount) {
         this.balance = this.balance.subtract(amount);
+    }
+
+    public boolean isAdmin() {
+        return this.role == Role.ADMIN;
+    }
+
+    public boolean hasRole(Role role) {
+        return this.role == role;
     }
 
     public static class Builder {
@@ -100,6 +122,7 @@ public class User {
         private String username;
         private String email;
         private String passwordHash;
+        private Role role = Role.USER;
 
         public Builder firstName(String firstName) {
             this.firstName = firstName;
@@ -123,6 +146,11 @@ public class User {
 
         public Builder passwordHash(String passwordHash) {
             this.passwordHash = passwordHash;
+            return this;
+        }
+
+        public Builder role(Role role) {
+            this.role = role;
             return this;
         }
 
