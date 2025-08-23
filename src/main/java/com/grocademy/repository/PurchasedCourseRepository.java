@@ -13,4 +13,6 @@ public interface PurchasedCourseRepository extends JpaRepository<PurchasedCourse
     @Query("SELECT pc.course.id FROM PurchasedCourse pc WHERE pc.user.id = :userId")
     Set<Long> findCourseIdsByUserId(@Param("userId") Long userId);
     boolean existsByUserIdAndCourseId(Long userId, Long courseId);
+
+    int countByUserId(Long userId);
 }
