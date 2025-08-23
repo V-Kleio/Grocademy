@@ -35,6 +35,7 @@ public class ModuleApiController {
     }
 
     @PostMapping("/courses/{courseId}/modules")
+    @SuppressWarnings("UseSpecificCatch")
     public ResponseEntity<ApiResponse<Object>> createModule(
             @PathVariable Long courseId,
             @RequestParam String title,
@@ -153,6 +154,7 @@ public class ModuleApiController {
     }
 
     @PutMapping("/modules/{id}")
+    @SuppressWarnings("UseSpecificCatch")
     public ResponseEntity<ApiResponse<Object>> updateModule(
             @PathVariable Long id,
             @RequestParam String title,
@@ -201,6 +203,7 @@ public class ModuleApiController {
     }
 
     @DeleteMapping("/modules/{id}")
+    @SuppressWarnings("UseSpecificCatch")
     public ResponseEntity<Void> deleteModule(
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetails userDetails) {

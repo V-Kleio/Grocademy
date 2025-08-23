@@ -45,6 +45,7 @@ public class AuthApiController {
     }
 
     @PostMapping("/register")
+    @SuppressWarnings("UseSpecificCatch")
     public ResponseEntity<ApiResponse<Object>> register(@RequestBody UserUpdateDto request) {
         try {
             User newUser = userService.registerUser(
@@ -73,6 +74,7 @@ public class AuthApiController {
     }
 
     @PostMapping("/login")
+    @SuppressWarnings("UseSpecificCatch")
     public ResponseEntity<ApiResponse<AuthResponseDto>> login(@RequestBody AuthRequestDto request) {
         try {
             authenticationManager.authenticate(

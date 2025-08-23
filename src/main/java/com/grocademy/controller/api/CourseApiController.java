@@ -45,6 +45,7 @@ public class CourseApiController {
     }
 
     @PostMapping
+    @SuppressWarnings("UseSpecificCatch")
     public ResponseEntity<ApiResponse<Object>> createCourse(
             @RequestParam String title,
             @RequestParam String description,
@@ -211,6 +212,7 @@ public class CourseApiController {
     }
 
     @PutMapping("/{id}")
+    @SuppressWarnings("UseSpecificCatch")
     public ResponseEntity<ApiResponse<Object>> updateCourse(
             @PathVariable Long id,
             @RequestParam String title,
@@ -255,6 +257,7 @@ public class CourseApiController {
     }
     
     @DeleteMapping("/{id}")
+    @SuppressWarnings("UseSpecificCatch")
     public ResponseEntity<Void> deleteCourse(
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetails userDetails) {
