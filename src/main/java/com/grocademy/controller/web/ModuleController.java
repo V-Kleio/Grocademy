@@ -10,22 +10,18 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import com.grocademy.entity.Module;
-import com.grocademy.entity.User;
 import com.grocademy.repository.ModuleRepository;
-import com.grocademy.repository.UserRepository;
 import com.grocademy.service.ModuleService;
 
 @Controller
 public class ModuleController {
     private final ModuleService moduleService;
     private final ModuleRepository moduleRepository;
-    private final UserRepository userRepository;
 
     @Autowired
-    public ModuleController(ModuleService moduleService, ModuleRepository moduleRepository, UserRepository userRepository) {
+    public ModuleController(ModuleService moduleService, ModuleRepository moduleRepository) {
         this.moduleService = moduleService;
         this.moduleRepository = moduleRepository;
-        this.userRepository = userRepository;
     }
 
     @GetMapping("/courses/{courseId}/modules")
@@ -34,9 +30,7 @@ public class ModuleController {
         Model model,
         @AuthenticationPrincipal UserDetails userDetails
     ) {
-        User currentUser = userRepository.findByUsername(userDetails.getUsername())
-            .orElseThrow(() -> new RuntimeException("User not found"));
-        model.addAttribute("data", moduleService.getCourseModuleData(courseId, currentUser.getId()));
+        model.addAttribute("data", moduleService.getCourseModuleData(courseId, userDetails.getUsername()));
         return "course-modules";
     }
 
@@ -45,9 +39,7 @@ public class ModuleController {
         @PathVariable Long moduleId,
         @AuthenticationPrincipal UserDetails userDetails
     ) {
-        User currentUser = userRepository.findByUsername(userDetails.getUsername())
-            .orElseThrow(() -> new RuntimeException("User not found"));
-        moduleService.markModuleAsComplete(moduleId, currentUser.getId());
+        moduleService.markModuleAsComplete(moduleId, userDetails.getUsername());
 
         Module module = moduleRepository.findById(moduleId)
             .orElseThrow(() -> new IllegalArgumentException("Module not found, ID: " + moduleId));
