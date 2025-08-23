@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import com.grocademy.dto.UserDto;
+import com.grocademy.dto.UserUpdateDto;
 import com.grocademy.service.UserService;
 
 @Controller
@@ -21,12 +21,12 @@ public class AuthController {
 
     @GetMapping("/register")
     public String showRegistrationForm(Model model) {
-        model.addAttribute("user", new UserDto("", "", "", "", ""));
+        model.addAttribute("user", new UserUpdateDto());
         return "register";
     }
 
     @PostMapping("/register")
-    public String registerUserAccount(@ModelAttribute("user") UserDto registrationDto) {
+    public String registerUserAccount(@ModelAttribute("user") UserUpdateDto registrationDto) {
         try {
             userService.registerUser(
                 registrationDto.firstName(),
