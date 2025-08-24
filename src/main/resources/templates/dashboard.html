@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Grocademy</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h1>Grocademy</h1>
+            </div>
+            <nav class="nav-links">
+                <a href="/dashboard" class="nav-link active">Dashboard</a>
+                <a href="/courses" class="nav-link">Browse Courses</a>
+                <a href="/my-courses" class="nav-link">My Courses</a>
+                <form action="/logout" method="post" class="logout-form">
+                    <button type="submit" class="logout-btn">Logout</button>
+                </form>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Welcome Section -->
+        <section class="welcome-section">
+            <div class="welcome-content">
+                <h1 class="welcome-title">Welcome back, <span th:text="${user.firstName}">User</span>! 👋</h1>
+                <p class="welcome-subtitle">Continue your learning journey and discover new skills</p>
+            </div>
+            <div class="user-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">📚</div>
+                    <div class="stat-info">
+                        <h3 th:text="${totalPurchasedCourses}">0</h3>
+                        <p>Courses Owned</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-info">
+                        <h3 th:text="'$' + ${user.balance}">$0</h3>
+                        <p>Account Balance</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">👤</div>
+                    <div class="stat-info">
+                        <h3 th:text="${user.username}">username</h3>
+                        <p>Username</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- My Recent Courses Section -->
+        <section class="courses-section" th:if="${recentCourses.hasContent()}">
+            <div class="section-header">
+                <h2>My Recent Courses</h2>
+                <a href="/my-courses" class="view-all-link">View All →</a>
+            </div>
+            <div class="courses-grid">
+                <div th:each="course : ${recentCourses.content}" class="course-card my-course">
+                    <div class="course-image">
+                        <img th:src="${course.thumbnailImageUrl}" th:alt="${course.title}" src="/images/default-course.jpg">
+                        <div class="course-badge purchased">Purchased</div>
+                    </div>
+                    <div class="course-content">
+                        <h3 class="course-title" th:text="${course.title}">Course Title</h3>
+                        <p class="course-instructor">by <span th:text="${course.instructor}">Instructor</span></p>
+                        <div class="course-topics">
+                            <span th:each="topic : ${course.topics}" class="topic-tag" th:text="${topic}">Topic</span>
+                        </div>
+                        <div class="course-actions">
+                            <a th:href="@{/courses/{id}(id=${course.id})}" class="btn btn-primary">Continue Learning</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- No Courses Message -->
+        <section class="no-courses-section" th:unless="${recentCourses.hasContent()}">
+            <div class="no-courses-content">
+                <div class="no-courses-icon">📖</div>
+                <h2>Start Your Learning Journey</h2>
+                <p>You haven't purchased any courses yet. Explore our course catalog to find something that interests you!</p>
+                <a href="/courses" class="btn btn-primary btn-large">Browse Courses</a>
+            </div>
+        </section>
+
+        <!-- Explore More Courses Section -->
+        <section class="courses-section">
+            <div class="section-header">
+                <h2>Explore More Courses</h2>
+                <a href="/courses" class="view-all-link">View All →</a>
+            </div>
+            <div class="courses-grid">
+                <div th:each="course : ${allCourses.content}" class="course-card">
+                    <div class="course-image">
+                        <img th:src="${course.thumbnailImageUrl}" th:alt="${course.title}" src="/images/default-course.jpg">
+                        <div th:if="${course.isPurchased}" class="course-badge purchased">Purchased</div>
+                        <div th:unless="${course.isPurchased}" class="course-badge price" th:text="'$' + ${course.price}">$99</div>
+                    </div>
+                    <div class="course-content">
+                        <h3 class="course-title" th:text="${course.title}">Course Title</h3>
+                        <p class="course-instructor">by <span th:text="${course.instructor}">Instructor</span></p>
+                        <div class="course-topics">
+                            <span th:each="topic : ${course.topics}" class="topic-tag" th:text="${topic}">Topic</span>
+                        </div>
+                        <p class="course-description" th:text="${course.description}">Course description...</p>
+                        <div class="course-actions">
+                            <a th:href="@{/courses/{id}(id=${course.id})}" class="btn btn-outline">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Actions Section -->
+        <section class="quick-actions-section">
+            <h2>Quick Actions</h2>
+            <div class="actions-grid">
+                <a href="/courses" class="action-card">
+                    <div class="action-icon">🔍</div>
+                    <h3>Browse Courses</h3>
+                    <p>Discover new courses and expand your knowledge</p>
+                </a>
+                <a href="/my-courses" class="action-card">
+                    <div class="action-icon">📚</div>
+                    <h3>My Courses</h3>
+                    <p>Continue learning from your purchased courses</p>
+                </a>
+                <a href="/profile" class="action-card">
+                    <div class="action-icon">⚙️</div>
+                    <h3>Profile Settings</h3>
+                    <p>Update your profile and account settings</p>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2024 Grocademy. Learn. Grow. Succeed.</p>
+        </div>
+    </footer>
+
+    <script th:src="@{/js/dashboard.js}"></script>
+    <script th:src="@{/js/auth-utils.js}"></script>
+</body>
+</html>
