@@ -19,7 +19,7 @@ NIM: 13523146
 ### Menggunakan Docker
 1. Clone repositori
 ```
-git clone
+git clone https://github.com/V-Kleio/Grocademy.git
 cd grocademy
 ```
 
