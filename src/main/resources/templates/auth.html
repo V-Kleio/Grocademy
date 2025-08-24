@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Grocademy</title>
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body>
+    <!-- Background with gradient and subtle animation -->
+    <div class="auth-background">
+        <div class="floating-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+            <div class="shape shape-4"></div>
+        </div>
+    </div>
+
+    <!-- Auth Container -->
+    <div class="auth-container">
+        <!-- Logo and Brand -->
+        <div class="brand-section">
+            <div class="logo">
+                <h1>Grocademy</h1>
+                <p class="tagline">Learn. Grow. Succeed.</p>
+            </div>
+        </div>
+
+        <!-- Auth Card -->
+        <div class="auth-card">
+            <!-- Mode Toggle Switch -->
+            <div class="mode-toggle">
+                <input type="checkbox" id="auth-toggle" class="toggle-input">
+                <label for="auth-toggle" class="toggle-label">
+                    <span class="toggle-inner"></span>
+                    <span class="toggle-switch"></span>
+                </label>
+                <div class="toggle-labels">
+                    <span class="login-label active">Login</span>
+                    <span class="register-label">Register</span>
+                </div>
+            </div>
+
+            <!-- Error/Success Messages -->
+            <div class="message-container">
+                <div th:if="${param.error}" class="message error-message">
+                    <i class="icon">⚠️</i>
+                    <span th:switch="${param.error[0]}">
+                        <span th:case="'session_expired'">Your session has expired. Please login again.</span>
+                        <span th:case="*">Invalid username or password.</span>
+                    </span>
+                </div>
+                <div th:if="${param.logout}" class="message success-message">
+                    <i class="icon">✅</i>
+                    <span>You have been logged out successfully.</span>
+                </div>
+                <div th:if="${param.registered}" class="message success-message">
+                    <i class="icon">🎉</i>
+                    <span>Registration successful! Please login.</span>
+                </div>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form" class="auth-form active">
+                <div class="form-header">
+                    <h2>Welcome Back</h2>
+                    <p>Sign in to continue your learning journey</p>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-wrapper">
+                        <input type="text" id="login-username" name="username" required>
+                        <label for="login-username">Username or Email</label>
+                        <div class="input-highlight"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-wrapper">
+                        <input type="password" id="login-password" name="password" required>
+                        <label for="login-password">Password</label>
+                        <div class="input-highlight"></div>
+                        <button type="button" class="password-toggle" onclick="togglePassword('login-password')">
+                            <span class="eye-icon">👁️</span>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn login-btn">
+                    <span class="btn-text">Sign In</span>
+                    <div class="btn-loader"></div>
+                </button>
+
+                <div class="form-footer">
+                    <p>Don't have an account? 
+                        <a href="#" class="switch-link" onclick="switchToRegister()">Create one</a>
+                    </p>
+                </div>
+            </form>
+
+            <!-- Register Form -->
+            <form id="register-form" class="auth-form">
+                <div class="form-header">
+                    <h2>Join Grocademy</h2>
+                    <p>Create your account and start learning</p>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group half">
+                        <div class="input-wrapper">
+                            <input type="text" id="firstName" name="firstName" required>
+                            <label for="firstName">First Name</label>
+                            <div class="input-highlight"></div>
+                        </div>
+                    </div>
+                    <div class="form-group half">
+                        <div class="input-wrapper">
+                            <input type="text" id="lastName" name="lastName" required>
+                            <label for="lastName">Last Name</label>
+                            <div class="input-highlight"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-wrapper">
+                        <input type="text" id="username" name="username" required>
+                        <label for="username">Username</label>
+                        <div class="input-highlight"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-wrapper">
+                        <input type="email" id="email" name="email" required>
+                        <label for="email">Email Address</label>
+                        <div class="input-highlight"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-wrapper">
+                        <input type="password" id="register-password" name="password" required>
+                        <label for="register-password">Password</label>
+                        <div class="input-highlight"></div>
+                        <button type="button" class="password-toggle" onclick="togglePassword('register-password')">
+                            <span class="eye-icon">👁️</span>
+                        </button>
+                    </div>
+                    <div class="password-strength">
+                        <div class="strength-bar"></div>
+                        <span class="strength-text">Password strength</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn register-btn">
+                    <span class="btn-text">Create Account</span>
+                    <div class="btn-loader"></div>
+                </button>
+
+                <div class="form-footer">
+                    <p>Already have an account? 
+                        <a href="#" class="switch-link" onclick="switchToLogin()">Sign in</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script th:src="@{/js/auth.js}"></script>
+</body>
+</html>
