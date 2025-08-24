@@ -1,7 +1,5 @@
 class AuthUtils {
     static checkAuthAndRedirect() {
-        // This will be handled by the server-side JWT filter
-        // If user is not authenticated, they'll be redirected by Spring Security
         return true;
     }
 
@@ -28,8 +26,10 @@ class AuthUtils {
 
     static handleApiError(response) {
         if (response.status === 401) {
-            // JWT expired or invalid, redirect to login
-            window.location.href = '/auth?error=session_expired';
+            const currentPath = window.location.pathname;
+            if (currentPath !== '/auth' && currentPath !== '/login' && !currentPath.startsWith('/auth')) {
+                window.location.href = '/auth?error=session_expired';
+            }
             return true;
         }
         return false;
@@ -40,15 +40,22 @@ class AuthUtils {
         const currentPath = window.location.pathname;
 
         if (protectedPaths.some(path => currentPath.startsWith(path))) {
-            // These paths require authentication
-            // If we reach here without being redirected, we're authenticated
             return true;
         }
         return false;
     }
+
+    static getAuthToken() {
+        return localStorage.getItem('jwt_token');
+    }
 }
 
 window.logout = AuthUtils.logout;
+window.getAuthToken = AuthUtils.getAuthToken;
+
 document.addEventListener('DOMContentLoaded', function() {
-    AuthUtils.checkCurrentPageAuth();
+    const currentPath = window.location.pathname;
+    if (!currentPath.startsWith('/auth') && !currentPath.startsWith('/login')) {
+        AuthUtils.checkCurrentPageAuth();
+    }
 });

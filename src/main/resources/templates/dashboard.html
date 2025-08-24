@@ -1,157 +1,293 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Grocademy</title>
-    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
-</head>
-<body>
-    <!-- Navigation Header -->
-    <header class="navbar">
-        <div class="nav-container">
-            <div class="nav-brand">
-                <h1>Grocademy</h1>
-            </div>
-            <nav class="nav-links">
-                <a href="/dashboard" class="nav-link active">Dashboard</a>
-                <a href="/courses" class="nav-link">Browse Courses</a>
-                <a href="/my-courses" class="nav-link">My Courses</a>
-                <form action="/logout" method="post" class="logout-form">
-                    <button type="submit" class="logout-btn">Logout</button>
-                </form>
-            </nav>
-        </div>
-    </header>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Dashboard - Grocademy</title>
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+			integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+			crossorigin="anonymous"
+			referrerpolicy="no-referrer"
+		/>
+		<link rel="stylesheet" th:href="@{/css/dashboard.css}" />
+		<link rel="stylesheet" th:href="@{/css/courses.css}" />
+	</head>
+	<body>
+		<!-- Navigation Header -->
+		<header class="navbar">
+			<div class="nav-container">
+				<div class="nav-brand">
+					<h1>Grocademy</h1>
+				</div>
+				<nav class="nav-links">
+					<a href="/dashboard" class="nav-link active">Dashboard</a>
+					<a href="/courses" class="nav-link">Browse Courses</a>
+					<form action="/logout" method="post" class="logout-form">
+						<button type="submit" class="btn btn-outline">
+							Logout
+						</button>
+					</form>
+				</nav>
+			</div>
+		</header>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Welcome Section -->
-        <section class="welcome-section">
-            <div class="welcome-content">
-                <h1 class="welcome-title">Welcome back, <span th:text="${user.firstName}">User</span>! 👋</h1>
-                <p class="welcome-subtitle">Continue your learning journey and discover new skills</p>
-            </div>
-            <div class="user-stats">
-                <div class="stat-card">
-                    <div class="stat-icon">📚</div>
-                    <div class="stat-info">
-                        <h3 th:text="${totalPurchasedCourses}">0</h3>
-                        <p>Courses Owned</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">💰</div>
-                    <div class="stat-info">
-                        <h3 th:text="'$' + ${user.balance}">$0</h3>
-                        <p>Account Balance</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">👤</div>
-                    <div class="stat-info">
-                        <h3 th:text="${user.username}">username</h3>
-                        <p>Username</p>
-                    </div>
-                </div>
-            </div>
-        </section>
+		<!-- Main Content -->
+		<main class="main-content">
+			<!-- Welcome Section -->
+			<section class="welcome-section">
+				<div class="welcome-content">
+					<h1 class="welcome-title">
+						Welcome back,
+						<span th:text="${user.firstName}">User</span>!
+						<i class="fa-regular fa-hand"></i>
+					</h1>
+				</div>
+				<div class="user-stats">
+					<div class="stat-card">
+						<i class="fa-solid fa-book-open"></i>
+						<div class="stat-info">
+							<h3 th:text="${myCourses.numberOfElements}">0</h3>
+							<p>Courses Owned</p>
+						</div>
+					</div>
+					<div class="stat-card">
+						<i class="fa-solid fa-wallet"></i>
+						<div class="stat-info">
+							<h3
+								th:text="'Rp ' + ${#numbers.formatDecimal(user.balance, 0, 'POINT', 2, 'COMMA')}"
+							>
+								Rp 0,00
+							</h3>
+							<p>Account Balance</p>
+						</div>
+					</div>
+				</div>
+			</section>
 
-        <!-- My Recent Courses Section -->
-        <section class="courses-section" th:if="${recentCourses.hasContent()}">
-            <div class="section-header">
-                <h2>My Recent Courses</h2>
-                <a href="/my-courses" class="view-all-link">View All →</a>
-            </div>
-            <div class="courses-grid">
-                <div th:each="course : ${recentCourses.content}" class="course-card my-course">
-                    <div class="course-image">
-                        <img th:src="${course.thumbnailImageUrl}" th:alt="${course.title}" src="/images/default-course.jpg">
-                        <div class="course-badge purchased">Purchased</div>
-                    </div>
-                    <div class="course-content">
-                        <h3 class="course-title" th:text="${course.title}">Course Title</h3>
-                        <p class="course-instructor">by <span th:text="${course.instructor}">Instructor</span></p>
-                        <div class="course-topics">
-                            <span th:each="topic : ${course.topics}" class="topic-tag" th:text="${topic}">Topic</span>
-                        </div>
-                        <div class="course-actions">
-                            <a th:href="@{/courses/{id}(id=${course.id})}" class="btn btn-primary">Continue Learning</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+			<!-- Search Section -->
+			<section class="search-section">
+				<form class="search-form" th:action="@{/courses}" method="get">
+					<div class="search-wrapper">
+						<input
+							type="text"
+							name="q"
+							placeholder="Search courses by title, instructor, or topic..."
+							th:value="${query}"
+							class="search-input"
+						/>
+						<button type="submit" class="search-btn">
+							<span class="search-icon"
+								><i class="fa-solid fa-magnifying-glass"></i
+							></span>
+							Search
+						</button>
+					</div>
+					<input type="hidden" name="page" value="0" />
+					<input type="hidden" name="limit" th:value="${pageSize}" />
+				</form>
+			</section>
 
-        <!-- No Courses Message -->
-        <section class="no-courses-section" th:unless="${recentCourses.hasContent()}">
-            <div class="no-courses-content">
-                <div class="no-courses-icon">📖</div>
-                <h2>Start Your Learning Journey</h2>
-                <p>You haven't purchased any courses yet. Explore our course catalog to find something that interests you!</p>
-                <a href="/courses" class="btn btn-primary btn-large">Browse Courses</a>
-            </div>
-        </section>
+			<!-- Results Info -->
+			<section class="results-info" th:if="${myCourses.hasContent()}">
+				<div class="results-summary">
+					<span class="results-text">
+						Showing
+						<strong th:text="${myCourses.numberOfElements}"
+							>0</strong
+						>
+						of
+						<strong th:text="${myCourses.totalElements}">0</strong>
+						courses
+						<span th:if="${!query.isEmpty()}" class="search-query">
+							for "<em th:text="${query}">search term</em>"
+						</span>
+					</span>
+				</div>
+			</section>
 
-        <!-- Explore More Courses Section -->
-        <section class="courses-section">
-            <div class="section-header">
-                <h2>Explore More Courses</h2>
-                <a href="/courses" class="view-all-link">View All →</a>
-            </div>
-            <div class="courses-grid">
-                <div th:each="course : ${allCourses.content}" class="course-card">
-                    <div class="course-image">
-                        <img th:src="${course.thumbnailImageUrl}" th:alt="${course.title}" src="/images/default-course.jpg">
-                        <div th:if="${course.isPurchased}" class="course-badge purchased">Purchased</div>
-                        <div th:unless="${course.isPurchased}" class="course-badge price" th:text="'$' + ${course.price}">$99</div>
-                    </div>
-                    <div class="course-content">
-                        <h3 class="course-title" th:text="${course.title}">Course Title</h3>
-                        <p class="course-instructor">by <span th:text="${course.instructor}">Instructor</span></p>
-                        <div class="course-topics">
-                            <span th:each="topic : ${course.topics}" class="topic-tag" th:text="${topic}">Topic</span>
-                        </div>
-                        <p class="course-description" th:text="${course.description}">Course description...</p>
-                        <div class="course-actions">
-                            <a th:href="@{/courses/{id}(id=${course.id})}" class="btn btn-outline">View Details</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+			<!-- Courses Grid -->
+			<section class="courses-section" th:if="${myCourses.hasContent()}">
+				<div class="courses-grid">
+					<div
+						th:each="course : ${myCourses.content}"
+						class="course-card"
+					>
+						<div class="course-image">
+							<img
+								th:src="${course.thumbnailImage}"
+								th:alt="${course.title}"
+								src="/images/default-course.png"
+								onerror="this.src='/images/default-course.png'"
+							/>
+							<div
+								th:if="${course.isPurchased}"
+								class="course-badge purchased"
+							>
+								<span class="badge-icon"
+									><i class="fa-solid fa-check"></i
+								></span>
+								Owned
+							</div>
+							<div
+								th:unless="${course.isPurchased}"
+								class="course-badge price"
+								th:text="'Rp ' + ${#numbers.formatDecimal(course.price, 0, 'POINT', 2, 'COMMA')}"
+							>
+								Rp 0,00
+							</div>
+						</div>
 
-        <!-- Quick Actions Section -->
-        <section class="quick-actions-section">
-            <h2>Quick Actions</h2>
-            <div class="actions-grid">
-                <a href="/courses" class="action-card">
-                    <div class="action-icon">🔍</div>
-                    <h3>Browse Courses</h3>
-                    <p>Discover new courses and expand your knowledge</p>
-                </a>
-                <a href="/my-courses" class="action-card">
-                    <div class="action-icon">📚</div>
-                    <h3>My Courses</h3>
-                    <p>Continue learning from your purchased courses</p>
-                </a>
-                <a href="/profile" class="action-card">
-                    <div class="action-icon">⚙️</div>
-                    <h3>Profile Settings</h3>
-                    <p>Update your profile and account settings</p>
-                </a>
-            </div>
-        </section>
-    </main>
+						<div class="course-content">
+							<h3 class="course-title" th:text="${course.title}">
+								Course Title
+							</h3>
+							<p class="course-instructor">
+								by
+								<span th:text="${course.instructor}"
+									>Instructor</span
+								>
+							</p>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-content">
-            <p>&copy; 2024 Grocademy. Learn. Grow. Succeed.</p>
-        </div>
-    </footer>
+							<div class="course-topics">
+								<span
+									th:each="topic : ${course.topics}"
+									class="topic-tag"
+									th:text="${topic}"
+									>Topic</span
+								>
+							</div>
 
-    <script th:src="@{/js/dashboard.js}"></script>
-    <script th:src="@{/js/auth-utils.js}"></script>
-</body>
+							<p
+								class="course-description"
+								th:text="${course.description}"
+							>
+								Course description goes here...
+							</p>
+
+							<div class="course-actions">
+								<a
+									th:href="@{/courses/{id}(id=${course.id})}"
+									class="btn btn-primary"
+								>
+									<span th:if="${course.isPurchased}"
+										>Continue Learning</span
+									>
+									<span th:unless="${course.isPurchased}"
+										>View Details</span
+									>
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- No Results -->
+			<section
+				class="no-results-section"
+				th:unless="${myCourses.hasContent()}"
+			>
+				<div class="no-results-content">
+					<div class="no-results-icon">
+						<i class="fa-solid fa-magnifying-glass"></i>
+					</div>
+					<h2>No Courses Found</h2>
+					<p th:if="${!query.isEmpty()}">
+						No courses match your search for "<strong
+							th:text="${query}"
+							>search term</strong
+						>". <br />Try different keywords or browse all courses.
+					</p>
+					<p th:if="${query.isEmpty()}">
+						There are no courses available at the moment.
+					</p>
+					<div class="no-results-actions">
+						<a
+							href="/courses"
+							class="btn btn-primary"
+							th:if="${!query.isEmpty()}"
+							>View All Courses</a
+						>
+						<a href="/dashboard" class="btn btn-outline"
+							>Back to Dashboard</a
+						>
+					</div>
+				</div>
+			</section>
+
+			<!-- Pagination -->
+			<section
+				class="pagination-section"
+				th:if="${myCourses.totalPages > 1}"
+			>
+				<nav class="pagination-nav">
+					<ul class="pagination">
+						<!-- Previous Button -->
+						<li
+							class="page-item"
+							th:classappend="${myCourses.first} ? 'disabled'"
+						>
+							<a
+								class="page-link"
+								th:href="@{/courses(q=${query}, page=${currentPage - 1}, limit=${pageSize})}"
+								th:if="${!myCourses.first}"
+							>
+								<i class="fa-solid fa-arrow-left"></i> Previous
+							</a>
+							<span
+								class="page-link disabled"
+								th:if="${myCourses.first}"
+								>← Previous</span
+							>
+						</li>
+
+						<!-- Page Numbers -->
+						<li
+							th:each="i : ${#numbers.sequence(0, myCourses.totalPages - 1)}"
+							class="page-item"
+							th:classappend="${i == currentPage} ? 'active'"
+						>
+							<a
+								class="page-link"
+								th:href="@{/courses(q=${query}, page=${i}, limit=${pageSize})}"
+								th:text="${i + 1}"
+								>1</a
+							>
+						</li>
+
+						<!-- Next Button -->
+						<li
+							class="page-item"
+							th:classappend="${myCourses.last} ? 'disabled'"
+						>
+							<a
+								class="page-link"
+								th:href="@{/courses(q=${query}, page=${currentPage + 1}, limit=${pageSize})}"
+								th:if="${!myCourses.last}"
+							>
+								Next <i class="fa-solid fa-arrow-right"></i>
+							</a>
+							<span
+								class="page-link disabled"
+								th:if="${myCourses.last}"
+								>Next →</span
+							>
+						</li>
+					</ul>
+				</nav>
+			</section>
+		</main>
+
+		<!-- Footer -->
+		<footer class="footer">
+			<div class="footer-content">
+				<p>&copy; 2024 Grocademy. Learn. Grow. Succeed.</p>
+			</div>
+		</footer>
+
+		<script th:src="@{/js/courses.js}"></script>
+		<script th:src="@{/js/auth-utils.js}"></script>
+	</body>
 </html>

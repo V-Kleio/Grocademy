@@ -13,5 +13,9 @@ public interface ModuleCompletedRepository extends JpaRepository<ModuleCompleted
         @Param("userId") Long userId,
         @Param("courseId") Long courseId
     );
+
     boolean existsByUserIdAndModuleId(Long userId, Long moduleId);
+
+    @Query("SELECT count(mc) FROM ModuleCompleted mc WHERE mc.user.id = :userId AND mc.module.course.id = :courseId")
+    long countCompletedByUserIdAndCourseId(@Param("userId") Long userId, @Param("courseId") Long courseId);
 }

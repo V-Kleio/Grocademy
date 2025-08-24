@@ -1,57 +1,268 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title th:text="${course.title}">Course Title</title>
-</head>
-<body>
-    <a th:href="@{/courses}">&larr; Back to All Courses</a>
-    <hr>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title th:text="${course.title} + ' - Grocademy'">
+			Course Detail - Grocademy
+		</title>
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+			integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+			crossorigin="anonymous"
+			referrerpolicy="no-referrer"
+		/>
+		<link th:href="@{/css/courses.css}" rel="stylesheet" />
+		<link th:href="@{/css/dashboard.css}" rel="stylesheet" />
+	</head>
+	<body>
+		<!-- Navigation -->
+		<header class="navbar">
+			<div class="nav-container">
+				<div class="nav-brand">
+					<h1>Grocademy</h1>
+				</div>
+				<nav class="nav-links">
+					<a href="/dashboard" class="nav-link">Dashboard</a>
+					<a href="/courses" class="nav-link active"
+						>Browse Courses</a
+					>
+					<button
+						type="button"
+						class="btn btn-outline"
+						onclick="logout()"
+					>
+						Logout
+					</button>
+				</nav>
+			</div>
+		</header>
 
-    <h1 th:text="${course.title}">Course Title</h1>
+		<!-- Main Content -->
+		<main class="main-content">
+			<!-- Breadcrumb -->
+			<section class="breadcrumb-section">
+				<div class="container">
+					<nav class="breadcrumb">
+						<a th:href="@{/courses}" class="breadcrumb-link"
+							>← Back to Courses</a
+						>
+					</nav>
+				</div>
+			</section>
 
-    <div th:if="${success}" style="color: green; border: 1px solid green; padding: 10px; margin-bottom: 15px;">
-        <p th:text="${success}"></p>
-    </div>
+			<!-- Success/Error Messages -->
+			<div th:if="${success}" class="alert alert-success">
+				<span th:text="${success}"></span>
+			</div>
 
-    <div th:if="${error}" style="color: red; border: 1px solid red; padding: 10px; margin-bottom: 15px;">
-        <p th:text="${error}"></p>
-    </div>
+			<div th:if="${error}" class="alert alert-error">
+				<span th:text="${error}"></span>
+			</div>
 
-    <p><em>by <span th:text="${course.instructor}">Instructor Name</span></em></p>
+			<!-- Course Detail Section -->
+			<section class="course-detail-section">
+				<div class="container">
+					<div class="course-detail-layout">
+						<!-- Course Image -->
+						<div class="course-image-section">
+							<div class="course-image-container">
+								<img
+									th:src="${course.thumbnailImage != null ? course.thumbnailImage : '/images/default-course.png'}"
+									th:alt="${course.title}"
+									class="course-detail-image"
+									onerror="this.src='/images/default-course.png'"
+								/>
+								<div
+									th:if="${course.isPurchased}"
+									class="course-status-badge purchased"
+								>
+									<i class="fa-solid fa-check"></i>
+									Owned
+								</div>
+								<div
+									th:unless="${course.isPurchased}"
+									class="course-status-badge price"
+									th:text="'Rp ' + ${#numbers.formatDecimal(course.price, 0, 'POINT', 2, 'COMMA')}"
+								>
+									Rp 99.999,00
+								</div>
+							</div>
+						</div>
 
-    <img th:src="${course.thumbnailImageUrl}" alt="Course Thumbnail" width="300">
+						<!-- Course Info -->
+						<div class="course-info-section">
+							<div class="course-header">
+								<h1
+									class="course-title"
+									th:text="${course.title}"
+								>
+									Course Title
+								</h1>
+								<p class="course-instructor">
+									by
+									<strong th:text="${course.instructor}"
+										>Instructor Name</strong
+									>
+								</p>
+							</div>
 
-    <h2>Description</h2>
-    <p th:text="${course.description}">Full course description goes here.</p>
+							<!-- Course Topics -->
+							<div class="course-topics">
+								<span
+									th:each="topic : ${course.topics}"
+									class="topic-tag"
+									th:text="${topic}"
+									>Topic</span
+								>
+							</div>
 
-    <h2>Topics Covered</h2>
-    <ul>
-        <li th:each="topic : ${course.topics}" th:text="${topic}">A Topic</li>
-    </ul>
+							<!-- Course Description -->
+							<div class="course-description-section">
+								<h2>About This Course</h2>
+								<p
+									class="course-description"
+									th:text="${course.description}"
+								>
+									Course description goes here...
+								</p>
+							</div>
 
-    <h2>Price: <span th:text="${course.price}">$99.99</span></h2>
+							<!-- Course Stats -->
+							<div
+								class="course-description-section"
+								th:if="${course.totalModules > 0}"
+							>
+								<div class="stat-item">
+									<span class="stat-icon"
+										><i class="fa-solid fa-book"></i
+									></span>
+									<span class="stat-text">
+										<strong th:text="${course.totalModules}"
+											>12</strong
+										>
+										Modules
+									</span>
+								</div>
+								<div
+									class="stat-item"
+									th:if="${course.isPurchased}"
+								>
+									<span class="stat-icon"
+										><i class="fa-solid fa-chart-line"></i
+									></span>
+									<span class="stat-text">
+										<strong
+											th:text="${course.progressPercentage}"
+											>75</strong
+										>% Complete
+									</span>
+								</div>
+							</div>
 
-    <div>
-        <div th:unless="${course.isPurchased}">
-            <form th:action="@{/courses/{id}/buy(id=${course.id})}" method="post">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <button type="submit">Buy Now</button>
-            </form>
-        </div>
+							<!-- Progress Bar (if purchased) -->
+							<div
+								th:if="${course.isPurchased}"
+								class="progress-section"
+							>
+								<div class="progress-header">
+									<span>Your Progress</span>
+									<span
+										class="progress-percentage"
+										th:text="${course.progressPercentage} + '%'"
+										>75%</span
+									>
+								</div>
+								<div class="progress-bar">
+									<div
+										class="progress-fill"
+										th:style="'width: ' + ${course.progressPercentage} + '%'"
+									></div>
+								</div>
+							</div>
 
-        <div th:if="${course.isPurchased}">
-            <a th:href="@{/courses/{id}/modules(id=${course.id})}">
-                <button>Go to Modules</button>
-            </a>
-        </div>
+							<!-- Course Actions -->
+							<div class="course-actions">
+								<!-- If not purchased -->
+								<div
+									th:unless="${course.isPurchased}"
+									class="purchase-section"
+								>
+									<div class="price-section">
+										<span class="price-label">Price:</span>
+										<span
+											class="price-amount"
+											th:text="'Rp ' + ${#numbers.formatDecimal(course.price, 0, 'POINT', 2, 'COMMA')}"
+											>Rp 99.999,00</span
+										>
+									</div>
+									<form
+										th:action="@{/courses/{id}/buy(id=${course.id})}"
+										method="post"
+										class="buy-form"
+									>
+										<button
+											type="submit"
+											class="btn btn-primary btn-large buy-btn"
+										>
+											<i
+												class="fa-solid fa-cart-shopping"
+											></i>
+											Buy Now
+										</button>
+									</form>
+								</div>
 
-        <div th:if="${course.isCompleted}" style="margin-top: 10px;">
-             <a th:href="@{/courses/{id}/certificate(id=${course.id})}">
-                <button>Download Certificate</button>
-            </a>
-        </div>
-    </div>
+								<!-- If purchased -->
+								<div
+									th:if="${course.isPurchased}"
+									class="access-section"
+								>
+									<a
+										th:href="@{/courses/{id}/modules(id=${course.id})}"
+										class="btn btn-primary btn-large"
+									>
+										<i class="fa-solid fa-book-open"></i>
+										<span
+											th:if="${course.progressPercentage > 0}"
+											>Continue Learning</span
+										>
+										<span
+											th:unless="${course.progressPercentage > 0}"
+											>Start Learning</span
+										>
+									</a>
 
-</body>
+									<!-- Certificate Download (if completed) -->
+									<div
+										th:if="${course.isCompleted}"
+										class="certificate-section"
+									>
+										<a
+											th:href="@{/courses/{id}/certificate(id=${course.id})}"
+											class="btn btn-primary"
+										>
+											<i class="fa-solid fa-trophy"></i>
+											Download Certificate
+										</a>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+		</main>
+
+		<!-- Footer -->
+		<footer class="footer">
+			<div class="footer-content">
+				<p>&copy; 2024 Grocademy. Learn. Grow. Succeed.</p>
+			</div>
+		</footer>
+
+		<script th:src="@{/js/auth-utils.js}"></script>
+		<script th:src="@{/js/courses.js}"></script>
+	</body>
 </html>

@@ -3,6 +3,7 @@ package com.grocademy.service.impl;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -133,6 +134,24 @@ public class ModuleServiceImpl implements ModuleService {
     }
 
     @Override
+    public List<ModuleDto> userGetModulesByCourse(Long courseId, String username) {
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new EntityNotFoundException("User not found: " + username));
+
+        if (!purchasedCourseRepository.existsByUserIdAndCourseId(user.getId(), courseId)) {
+            throw new SecurityException("User does not have access to this course");
+        }
+
+        List<Module> modules = moduleRepository.findAllByCourseIdOrderByModuleOrderAsc(courseId);
+
+        Set<Long> completedModuleIds = moduleCompletedRepository.findCompletedModuleIdByUserIdAndCourseId(user.getId(), courseId);
+
+        return modules.stream()
+            .map(module -> ModuleDto.fromEntityWithUserData(module, completedModuleIds.contains(module.getId())))
+            .collect(Collectors.toList());
+    }
+
+    @Override
     public ModuleDto userGetModuleById(Long id, String username) {
         Module module = moduleRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Module not found, ID: " + id));
@@ -177,7 +196,7 @@ public class ModuleServiceImpl implements ModuleService {
 
         String certificateUrl = null;
         if (percentage == 100) {
-            certificateUrl = certificateService.generateCertificate(user, module.getCourse(), java.time.LocalDateTime.now());
+            certificateUrl = certificateService.generateCertificate(user, module.getCourse());
         }
 
         return Map.of(
@@ -202,11 +221,11 @@ public class ModuleServiceImpl implements ModuleService {
         for (Map<String, Object> item : moduleOrder) {
             String moduleIdStr = (String) item.get("id");
             Integer order = (Integer) item.get("order");
-            
+
             Long moduleId = Long.valueOf(moduleIdStr);
             Module module = moduleRepository.findById(moduleId)
                 .orElseThrow(() -> new EntityNotFoundException("Module not found, ID: " + moduleId));
-            
+
             module.setModuleOrder(order);
             moduleRepository.save(module);
         }
@@ -247,5 +266,15 @@ public class ModuleServiceImpl implements ModuleService {
     @Override
     public void markModuleAsComplete(Long moduleId, String username) {
         completeModule(moduleId, username);
+    }
+
+    @Override
+    public boolean hasUserCompletedAllModules(Long userId, Long courseId) {
+        long totalModules = moduleRepository.countByCourseId(courseId);
+        if (totalModules == 0) {
+            return false;
+        }
+        long completedModules = moduleCompletedRepository.countCompletedByUserIdAndCourseId(userId, courseId);
+        return totalModules == completedModules;
     }
 }

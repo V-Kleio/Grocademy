@@ -1,27 +1,443 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<body>
-    <h1 th:text="${data.course.title}">Course Title</h1>
-    <a th:href="@{/my-courses}">&larr; Back to My Courses</a>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title th:text="${course.title} + ' - Modules - Grocademy'">
+			Course Modules - Grocademy
+		</title>
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+			integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+			crossorigin="anonymous"
+			referrerpolicy="no-referrer"
+		/>
+		<link th:href="@{/css/courses.css}" rel="stylesheet" />
+		<link th:href="@{/css/dashboard.css}" rel="stylesheet" />
+		<style>
+			.pdf-viewer,
+			.video-player {
+				width: 100%;
+				height: 600px;
+				border: 1px solid #e2e8f0;
+				border-radius: 8px;
+				display: block;
+			}
+			.module-content-viewer {
+				background: white;
+				border-radius: 12px;
+				box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+				overflow: hidden;
+			}
+			.content-tab {
+				cursor: pointer;
+				padding: 10px 15px;
+				border-radius: 6px;
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				transition: all 0.2s ease;
+			}
+			.content-tab:hover {
+				background-color: #f3f4f6;
+			}
+			.content-tab.active {
+				background-color: #e5e7eb;
+				font-weight: 500;
+			}
+			.loading-message {
+				text-align: center;
+				padding: 20px;
+			}
+			.module-item {
+				cursor: pointer;
+				transition: all 0.2s ease;
+			}
+			.module-item:hover {
+				background-color: #f9fafb;
+			}
+			.module-item.active {
+				background-color: #f3f4f6;
+				border-left: 4px solid #3b82f6;
+			}
+			@keyframes fadeIn {
+				from {
+					opacity: 0;
+				}
+				to {
+					opacity: 1;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<!-- Navigation remains unchanged -->
+		<header class="navbar">
+			<div class="nav-container">
+				<div class="nav-brand">
+					<h1>Grocademy</h1>
+				</div>
+				<nav class="nav-links">
+					<a href="/dashboard" class="nav-link">Dashboard</a>
+					<a href="/courses" class="nav-link active"
+						>Browse Courses</a
+					>
+					<button
+						type="button"
+						class="btn btn-outline"
+						onclick="logout()"
+					>
+						Logout
+					</button>
+				</nav>
+			</div>
+		</header>
 
-    <h2>Your Progress</h2>
-    <progress th:value="${data.progressPercentage}" max="100"></progress>
-    <span th:text="${data.progressPercentage} + '% Complete'">75% Complete</span>
+		<!-- Main Content -->
+		<main class="main-content">
+			<!-- Breadcrumb remains unchanged -->
+			<section class="breadcrumb-section">
+				<div class="container">
+					<nav class="breadcrumb">
+						<a th:href="@{/courses}" class="breadcrumb-link"
+							>← Back to Courses</a
+						>
+						<span class="breadcrumb-separator">/</span>
+						<a
+							th:href="@{/courses/{id}(id=${course.id})}"
+							class="breadcrumb-link"
+							th:text="${course.title}"
+							>Course Title</a
+						>
+					</nav>
+				</div>
+			</section>
 
-    <hr>
-    <h2>Modules</h2>
-    <div th:each="module : ${data.modules}">
-        <div>
-            <strong th:text="${module.moduleOrder} + '. ' + ${module.title}">1. Module Title</strong>
+			<!-- Success/Error Messages -->
+			<div id="message-container"></div>
 
-            <span th:if="${module.isCompleted}" style="color: green;">✓ Completed</span>
+			<!-- Course Header remains unchanged -->
+			<section class="course-header-section">
+				<div class="container">
+					<div class="course-header">
+						<div class="course-info">
+							<h1 class="course-title" th:text="${course.title}">
+								Course Title
+							</h1>
+							<p class="course-instructor">
+								by
+								<strong th:text="${course.instructor}"
+									>Instructor</strong
+								>
+							</p>
+							<div class="course-topics">
+								<span
+									th:each="topic : ${course.topics}"
+									class="topic-tag"
+									th:text="${topic}"
+									>Topic</span
+								>
+							</div>
+						</div>
 
-            <form th:unless="${module.isCompleted}" th:action="@{/modules/{id}/complete(id=${module.id})}" method="post" style="display: inline-block; margin-left: 20px;">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <button type="submit">Mark as Complete</button>
-            </form>
-        </div>
-        <br>
-    </div>
-</body>
+						<!-- Progress Section -->
+						<div class="progress-section">
+							<div class="progress-header">
+								<span>Course Progress</span>
+								<span
+									class="progress-percentage"
+									th:text="${progressPercentage} + '%'"
+									>0%</span
+								>
+							</div>
+							<div class="progress-bar">
+								<div
+									class="progress-fill"
+									th:style="'width: ' + ${progressPercentage} + '%'"
+								></div>
+							</div>
+							<div class="progress-stats">
+								<span
+									th:text="${completedModules} + ' of ' + ${totalModules} + ' modules completed'"
+									>0 of 0 modules completed</span
+								>
+							</div>
+						</div>
+
+						<!-- Certificate Download (if completed) -->
+						<div
+							th:if="${progressPercentage == 100}"
+							class="certificate-section"
+						>
+							<div class="certificate-card">
+								<h3>
+									<i class="fa-solid fa-award"></i>
+									Congratulations!
+								</h3>
+								<p>You have completed this course!</p>
+								<a
+									th:href="@{/courses/{id}/certificate(id=${course.id})}"
+									class="btn btn-primary certificate-btn"
+									target="_blank"
+								>
+									<i class="fa-solid fa-trophy"></i>
+									Download Certificate
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- Course Content Layout - UPDATED -->
+			<section class="course-content-section">
+				<div class="container">
+					<div class="course-layout">
+						<!-- Module List Sidebar - UPDATED property references -->
+						<div class="modules-sidebar">
+							<div class="modules-header">
+								<h2>Course Modules</h2>
+								<p th:text="${totalModules} + ' modules'">
+									0 modules
+								</p>
+							</div>
+
+							<div class="modules-list">
+								<div
+									th:each="module, iter : ${modules}"
+									class="module-item"
+									th:classappend="${iter.index == 0} ? 'active' : ''"
+									th:data-module-id="${module.id}"
+									th:data-module-index="${iter.index}"
+									onclick="selectModule(this)"
+								>
+									<div
+										class="module-number"
+										th:text="${module.moduleOrder}"
+									>
+										1
+									</div>
+									<div class="module-details">
+										<h4
+											class="module-title"
+											th:text="${module.title}"
+										>
+											Module Title
+										</h4>
+										<p
+											class="module-description"
+											th:text="${module.description}"
+										>
+											Module description
+										</p>
+
+										<div class="module-content-types">
+											<!-- FIXED: Property names should be consistent -->
+											<span
+												th:if="${module.pdfContent}"
+												class="content-type pdf"
+												><i
+													class="fa-solid fa-file-pdf"
+												></i>
+												PDF</span
+											>
+											<span
+												th:if="${module.videoContent}"
+												class="content-type video"
+												><i
+													class="fa-solid fa-video"
+												></i>
+												Video</span
+											>
+										</div>
+									</div>
+
+									<div class="module-status">
+										<div
+											th:if="${module.completed}"
+											class="status-completed"
+										>
+											<span class="status-icon"
+												><i
+													class="fa-solid fa-check"
+												></i
+											></span>
+											<span class="status-text"
+												>Completed</span
+											>
+										</div>
+										<div
+											th:unless="${module.completed}"
+											class="status-pending"
+										>
+											<span class="status-icon"
+												><i
+													class="fa-regular fa-circle"
+												></i
+											></span>
+											<span class="status-text"
+												>Pending</span
+											>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- Module Content Viewer - UPDATED -->
+						<div class="content-viewer">
+							<div
+								id="no-module-selected"
+								class="no-content-message"
+							>
+								<h3>Select a module to start learning</h3>
+								<p>
+									Choose a module from the list to view its
+									content.
+								</p>
+							</div>
+
+							<div
+								id="module-viewer"
+								class="module-viewer"
+								style="display: none"
+							>
+								<div class="module-viewer-header">
+									<div class="module-info">
+										<h2 id="current-module-title">
+											Module Title
+										</h2>
+										<p id="current-module-description">
+											Module description
+										</p>
+									</div>
+
+									<div class="module-actions">
+										<button
+											id="mark-complete-btn"
+											class="btn btn-primary"
+											onclick="markModuleComplete()"
+											style="display: none"
+										>
+											<i class="fa-solid fa-check"></i>
+											Mark as Complete
+										</button>
+
+										<div
+											id="completed-badge"
+											class="completed-badge"
+											style="display: none"
+										>
+											<i class="fa-solid fa-check"></i>
+											Completed
+										</div>
+									</div>
+								</div>
+
+								<div class="content-tabs">
+									<div
+										id="pdf-tab"
+										class="content-tab"
+										onclick="showContent('pdf')"
+										style="display: none"
+									>
+										<i class="fa-solid fa-file-pdf"></i>
+										PDF Content
+									</div>
+									<div
+										id="video-tab"
+										class="content-tab"
+										onclick="showContent('video')"
+										style="display: none"
+									>
+										<i class="fa-solid fa-video"></i>
+										Video Content
+									</div>
+								</div>
+
+								<div
+									id="pdf-viewer"
+									class="content-panel"
+									style="display: none"
+								>
+									<iframe
+										id="pdf-frame"
+										class="pdf-viewer"
+									></iframe>
+									<div
+										id="pdf-loading"
+										class="loading-message"
+									>
+										<p>Loading PDF content...</p>
+									</div>
+								</div>
+
+								<div
+									id="video-viewer"
+									class="content-panel"
+									style="display: none"
+								>
+									<video
+										id="video-player"
+										class="video-player"
+										controls
+									>
+										Your browser does not support the video
+										tag.
+									</video>
+									<div
+										id="video-loading"
+										class="loading-message"
+									>
+										<p>Loading video content...</p>
+									</div>
+								</div>
+
+								<div
+									id="no-content-message"
+									class="no-content-message"
+									style="display: none"
+								>
+									<h3>No content available</h3>
+									<p>
+										This module doesn't have any content
+										yet.
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+		</main>
+
+		<!-- Footer -->
+		<footer class="footer">
+			<div class="footer-content">
+				<p>&copy; 2024 Grocademy. Learn. Grow. Succeed.</p>
+			</div>
+		</footer>
+
+		<!-- UPDATED: Use a more robust approach to initialize course data -->
+		<script th:src="@{/js/auth-utils.js}"></script>
+		<script th:inline="javascript">
+			// Using inline JavaScript for safer data initialization
+			const courseData = {
+				id: /*[[${course.id}]]*/ null,
+				title: /*[[${course.title}]]*/ "",
+				modules: [],
+			};
+
+			// Properly initialize modules array
+			const modulesData = /*[[${modules}]]*/ [];
+			if (Array.isArray(modulesData)) {
+				courseData.modules = modulesData;
+			}
+
+			// Debug output to help identify issues
+			console.log("Course data initialized:", courseData);
+		</script>
+		<script th:src="@{/js/courses.js}"></script>
+	</body>
 </html>

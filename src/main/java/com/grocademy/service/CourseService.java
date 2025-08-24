@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.grocademy.dto.CourseDto;
+import com.grocademy.entity.Course;
 
 public interface CourseService {
     Page<CourseDto> findAllCourses(String query, Pageable pageable, Long userId);
@@ -24,4 +25,5 @@ public interface CourseService {
     CourseDto apiGetCourseById(Long id);
 
     int getTotalModules(Long courseId);
+    Course getCourseEntityById(Long courseId);
 }

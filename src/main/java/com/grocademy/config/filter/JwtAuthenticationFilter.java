@@ -1,11 +1,7 @@
 package com.grocademy.config.filter;
 
-import com.grocademy.service.JwtService;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,7 +11,14 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
+import com.grocademy.service.JwtService;
+
+import io.jsonwebtoken.ExpiredJwtException;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -37,6 +40,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
         String jwt = null;
         String username = null;
+        boolean tokenExpired = false;
 
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -54,6 +58,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (jwt != null) {
             try {
                 username = jwtService.extractUsername(jwt);
+            } catch (ExpiredJwtException e) {
+                tokenExpired = true;
+                if (authHeader == null) {
+                    Cookie jwtCookie = new Cookie("jwt", "");
+                    jwtCookie.setHttpOnly(true);
+                    jwtCookie.setPath("/");
+                    jwtCookie.setMaxAge(0);
+                    response.addCookie(jwtCookie);
+                }
             } catch (Exception e) {
                 if (authHeader == null) {
                     Cookie jwtCookie = new Cookie("jwt", "");
@@ -65,7 +78,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (username != null && !tokenExpired && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
             if (jwtService.isTokenValid(jwt, userDetails)) {

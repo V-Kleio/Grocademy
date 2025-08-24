@@ -1,46 +1,17 @@
 package com.grocademy.service.impl;
 
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
 import com.grocademy.entity.Course;
 import com.grocademy.entity.User;
 import com.grocademy.service.CertificateService;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.UUID;
 
 @Service
 public class CertificateServiceImpl implements CertificateService {
-    @Value("${app.upload.dir:uploads}")
-    private String uploadDir;
-
     @Override
-    public String generateCertificate(User user, Course course, LocalDateTime completionDate) {
-        try {
-            String certificateHtml = generateCertificateHtml(user, course, completionDate);
-
-            String fileName = "certificate_" + user.getId() + "_" + course.getId() + "_" + UUID.randomUUID() + ".html";
-            Path certificatePath = Paths.get(uploadDir, "certificates");
-
-            if (!Files.exists(certificatePath)) {
-                Files.createDirectories(certificatePath);
-            }
-
-            Path filePath = certificatePath.resolve(fileName);
-            Files.write(filePath, certificateHtml.getBytes());
-
-            return "/certificates/" + fileName;
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to generate certificate", e);
-        }
-    }
-
-    private String generateCertificateHtml(User user, Course course, LocalDateTime completionDate) {
+    public String generateCertificate(User user, Course course) {
         return String.format("""
             <!DOCTYPE html>
             <html lang="en">
@@ -110,7 +81,6 @@ public class CertificateServiceImpl implements CertificateService {
                     <h2>has successfully completed the course</h2>
                     <div class="course-title">"%s"</div>
                     <h2>Instructor: %s</h2>
-                    <div class="date">Completed on: %s</div>
                     <div class="date">Certificate ID: GROC-%d-%d-%s</div>
                 </div>
             </body>
@@ -119,7 +89,6 @@ public class CertificateServiceImpl implements CertificateService {
             user.getUsername(),
             course.getTitle(),
             course.getInstructor(),
-            completionDate.format(DateTimeFormatter.ofPattern("MMMM dd, yyyy")),
             user.getId(),
             course.getId(),
             UUID.randomUUID().toString().substring(0, 8).toUpperCase()

@@ -1,9 +1,7 @@
 package com.grocademy.controller.web;
 
-import com.grocademy.entity.User;
-import com.grocademy.repository.UserRepository;
-import com.grocademy.service.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -11,6 +9,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.grocademy.dto.CourseDto;
+import com.grocademy.entity.User;
+import com.grocademy.repository.UserRepository;
+import com.grocademy.service.CourseService;
 
 @Controller
 public class DashboardController {
@@ -26,23 +30,41 @@ public class DashboardController {
     @GetMapping("/dashboard")
     public String dashboard(
             Model model,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        
-        User currentUser = userRepository.findByUsername(userDetails.getUsername())
-            .orElseThrow(() -> new RuntimeException("User not found"));
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "") String query,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int limit) {
+        try {
+            User currentUser = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Pageable recentCoursesPageable = PageRequest.of(0, 6);
-        var recentCourses = courseService.findPurchasedCourses(currentUser.getId(), "", recentCoursesPageable);
+            Pageable coursesPageable = PageRequest.of(page, limit);
+            Page<CourseDto> myCourses = courseService.findPurchasedCourses(currentUser.getId(), query, coursesPageable);
 
-        Pageable allCoursesPageable = PageRequest.of(0, 6);
-        var allCourses = courseService.findAllCourses("", allCoursesPageable, currentUser.getId());
+            model.addAttribute("user", currentUser);
+            model.addAttribute("myCourses", myCourses);
+            model.addAttribute("query", query);
+            model.addAttribute("currentPage", page);
+            model.addAttribute("pageSize", limit);
 
-        model.addAttribute("user", currentUser);
-        model.addAttribute("recentCourses", recentCourses);
-        model.addAttribute("allCourses", allCourses);
-        model.addAttribute("totalPurchasedCourses", recentCourses.getTotalElements());
+            return "dashboard";
+        } catch (Exception e) {
+            System.err.println("Error in dashboard controller: " + e.getMessage());
 
-        return "dashboard";
+            Page<CourseDto> emptyPage = Page.empty();
+
+            model.addAttribute("myCourses", emptyPage);
+            model.addAttribute("query", query);
+            model.addAttribute("currentPage", page);
+            model.addAttribute("pageSize", limit);
+
+            return "dashboard";
+        }
+    }
+
+    @GetMapping("/my-courses")
+    public String myCoursesRedirect() {
+        return "redirect:/dashboard";
     }
 
     @GetMapping("/")

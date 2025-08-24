@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Add loading states to buttons
     const buttons = document.querySelectorAll('.btn');
     buttons.forEach(button => {
         button.addEventListener('click', function(e) {
@@ -16,7 +15,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Add smooth scrolling for internal links
     const internalLinks = document.querySelectorAll('a[href^="#"]');
     internalLinks.forEach(link => {
         link.addEventListener('click', function(e) {
@@ -31,7 +29,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Add animation on scroll for course cards
     const observerOptions = {
         threshold: 0.1,
         rootMargin: '0px 0px -50px 0px'
@@ -52,22 +49,18 @@ document.addEventListener('DOMContentLoaded', function() {
         observer.observe(card);
     });
 
-    // Welcome message animation
     const welcomeTitle = document.querySelector('.welcome-title');
     if (welcomeTitle) {
         welcomeTitle.style.animation = 'fadeInDown 1s ease forwards';
     }
 
-    // Stat cards counter animation
     const statNumbers = document.querySelectorAll('.stat-info h3');
     statNumbers.forEach(stat => {
         const finalValue = stat.textContent;
         if (finalValue.includes('$')) {
-            // Handle balance animation
             const value = parseFloat(finalValue.replace('$', ''));
             animateValue(stat, 0, value, 1500, '$');
         } else if (!isNaN(finalValue)) {
-            // Handle number animation
             const value = parseInt(finalValue);
             animateValue(stat, 0, value, 1500);
         }
@@ -89,7 +82,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Add CSS animations
 const style = document.createElement('style');
 style.textContent = `
     @keyframes fadeInUp {

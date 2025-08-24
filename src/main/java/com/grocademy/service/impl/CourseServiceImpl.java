@@ -228,4 +228,10 @@ public class CourseServiceImpl implements CourseService {
 
         return (int) Math.round(((double) completedModuleIds.size() / totalModules) * 100);
     }
+
+    @Override
+    public Course getCourseEntityById(Long courseId) {
+        return courseRepository.findById(courseId)
+            .orElseThrow(() -> new RuntimeException("Course not found with id: " + courseId));
+    }
 }

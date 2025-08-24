@@ -1,9 +1,7 @@
 package com.grocademy.controller.web;
 
-import com.grocademy.entity.User;
-import com.grocademy.repository.UserRepository;
-import com.grocademy.service.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,6 +13,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.grocademy.dto.CourseDto;
+import com.grocademy.entity.User;
+import com.grocademy.repository.UserRepository;
+import com.grocademy.service.CourseService;
 
 @Controller
 public class CourseController {
@@ -31,19 +34,33 @@ public class CourseController {
     public String browseCourses(
             Model model,
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam(defaultValue = "") String query,
+            @RequestParam(defaultValue = "") String q,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int limit
+            @RequestParam(defaultValue = "12") int limit
     ) {
-        User currentUser = userRepository.findByUsername(userDetails.getUsername())
-            .orElseThrow(() -> new RuntimeException("User not found"));
-        Long currentUserId = currentUser.getId();
+        try {
+            User user = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Pageable pageable = PageRequest.of(page, limit);
-        model.addAttribute("coursePage", courseService.findAllCourses(query, pageable, currentUserId));
-        model.addAttribute("query", query);
+            Pageable pageable = PageRequest.of(page, Math.min(limit, 50));
+            Page<CourseDto> coursePage = courseService.findAllCourses(q, pageable, user.getId());
 
-        return "browse-courses";
+            model.addAttribute("coursePage", coursePage);
+            model.addAttribute("query", q);
+            model.addAttribute("currentPage", page);
+            model.addAttribute("pageSize", limit);
+            model.addAttribute("user", user);
+
+            return "browse-courses";
+        } catch (Exception e) {
+            model.addAttribute("error", "Error loading courses: " + e.getMessage());
+            model.addAttribute("coursePage", Page.empty());
+            model.addAttribute("query", q);
+            model.addAttribute("currentPage", 0);
+            model.addAttribute("pageSize", limit);
+
+            return "browse-courses";
+        }
     }
 
     @GetMapping("/courses/{id}")
@@ -52,11 +69,18 @@ public class CourseController {
         Model model,
         @AuthenticationPrincipal UserDetails userDetails
     ) {
-        User currentUser = userRepository.findByUsername(userDetails.getUsername())
-            .orElseThrow(() -> new RuntimeException("User not found"));
+        try {
+            User user = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
-        model.addAttribute("course", courseService.findCourseDetailsById(id, currentUser.getId()));
-        return "course-detail";
+            CourseDto course = courseService.findCourseDetailsById(id, user.getId());
+            model.addAttribute("course", course);
+
+            return "course-detail";
+        } catch (Exception e) {
+            model.addAttribute("error", "Course not found: " + e.getMessage());
+            return "redirect:/courses";
+        }
     }
 
     @PostMapping("/courses/{id}/buy")
@@ -65,34 +89,17 @@ public class CourseController {
         @AuthenticationPrincipal UserDetails userDetails,
         RedirectAttributes redirectAttributes
     ) {
-        User currentUser = userRepository.findByUsername(userDetails.getUsername())
-            .orElseThrow(() -> new RuntimeException("User not found"));
-
         try {
-            courseService.buyCourse(id, currentUser.getId());
-            redirectAttributes.addFlashAttribute("success", "Course purchased");
-        } catch (IllegalStateException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            User user = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            courseService.buyCourse(id, user.getId());
+            redirectAttributes.addFlashAttribute("success", "Course purchased successfully! You can now access all modules.");
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Purchase failed: " + e.getMessage());
         }
 
         return "redirect:/courses/" + id;
-    }
-
-    @GetMapping("/my-courses")
-    public String myCoursesPage(
-            Model model,
-            @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam(defaultValue = "") String query,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int limit
-    ) {
-        User currentUser = userRepository.findByUsername(userDetails.getUsername())
-            .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Pageable pageable = PageRequest.of(page, limit);
-        model.addAttribute("coursePage", courseService.findPurchasedCourses(currentUser.getId(), query, pageable));
-        model.addAttribute("query", query);
-
-        return "my-courses";
     }
 }

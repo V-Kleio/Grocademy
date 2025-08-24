@@ -1,16 +1,20 @@
 package com.grocademy.controller.web;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
 import com.grocademy.controller.api.AuthApiController;
 import com.grocademy.dto.ApiResponse;
 import com.grocademy.dto.AuthRequestDto;
 import com.grocademy.dto.AuthResponseDto;
 import com.grocademy.dto.UserUpdateDto;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -46,9 +50,9 @@ public class AuthController {
 
                 Cookie jwtCookie = new Cookie("jwt", authData.token());
                 jwtCookie.setHttpOnly(true);
-                jwtCookie.setSecure(false); // Set to true in production with HTTPS
+                jwtCookie.setSecure(true);
                 jwtCookie.setPath("/");
-                jwtCookie.setMaxAge(24 * 60 * 60); // 24 hours
+                jwtCookie.setMaxAge(3600);
                 response.addCookie(jwtCookie);
 
                 return new ApiResponse<>("success", "Login successful", null);
@@ -78,9 +82,9 @@ public class AuthController {
 
                     Cookie jwtCookie = new Cookie("jwt", authData.token());
                     jwtCookie.setHttpOnly(true);
-                    jwtCookie.setSecure(false); // Set to true in production with HTTPS
+                    jwtCookie.setSecure(true);
                     jwtCookie.setPath("/");
-                    jwtCookie.setMaxAge(24 * 60 * 60); // 24 hours
+                    jwtCookie.setMaxAge(3600);
                     response.addCookie(jwtCookie);
                 }
                 return new ApiResponse<>("success", "Registration successful", null);
